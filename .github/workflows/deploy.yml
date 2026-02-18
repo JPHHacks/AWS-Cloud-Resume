@@ -6,7 +6,7 @@ on:
       - main
   pull_request:
     branches:
-      - main
+      - main  
 
 env:
   TF_VERSION: '1.5.0'
@@ -26,7 +26,7 @@ jobs:
 
       - name: Install Dependencies
         run: npm ci
-        working-directory: ./website
+        working-directory: ./website  
 
       - name: Clear Cache and Build
         working-directory: ./website
@@ -37,8 +37,8 @@ jobs:
           rm -rf .cache/
           
           # Clear npm cache
-          npm cache clean --force
-          
+          npm cache clean --force 
+
           # Build fresh
           npm run build
           
@@ -74,7 +74,7 @@ jobs:
 
       - name: Install Dependencies
         run: npm ci
-        working-directory: ./website
+        working-directory: ./website  
 
       - name: Install Snyk CLI
         run: npm install -g snyk
@@ -120,41 +120,41 @@ jobs:
         with:
           name: build-files
           path: website/build/
-
-      - name: Configure AWS Credentials
+  
+        - name: Configure AWS Credentials
         uses: aws-actions/configure-aws-credentials@v4
-        with:
-          role-to-assume: arn:aws:iam::222634359784:role/GitHubActionsRole
-          aws-region: ${{ secrets.AWS_REGION }}
-
-      - name: Setup Terraform
+          with:
+            role-to-assume: arn:aws:iam::222634359784:role/GitHubActionsRole  
+            aws-region: ${{ secrets.AWS_REGION }}
+  
+        - name: Setup Terraform
         uses: hashicorp/setup-terraform@v3
-        with:
-          terraform_version: ${{ env.TF_VERSION }}
-
-      - name: Terraform Init
+          with:
+            terraform_version: ${{ env.TF_VERSION }}
+       
+        - name: Terraform Init
         run: terraform init
-        working-directory: ./terraform/env/prod
+          working-directory: ./terraform/env/prod
 
-      - name: Terraform Plan
+        - name: Terraform Plan
         run: terraform plan
-        working-directory: ./terraform/env/prod
+          working-directory: ./terraform/env/prod 
 
-      - name: Terraform Apply
+        - name: Terraform Apply
         run: terraform apply -auto-approve
-        working-directory: ./terraform/env/prod
+          working-directory: ./terraform/env/prod
 
       - name: Deploy to S3
         run: |
           aws s3 sync ./website/build s3://${{ secrets.S3_BUCKET_NAME }} --delete
           echo "Deployment completed at: $(date)"
-        env:
-          AWS_REGION: ${{ secrets.AWS_REGION }}
+          env:
+            AWS_REGION: ${{ secrets.AWS_REGION }}
 
       - name: Invalidate CloudFront
-        run: |
+          run: |
           aws cloudfront create-invalidation \
             --distribution-id ${{ secrets.CLOUDFRONT_DISTRIBUTION_ID }} \
             --paths "/*"
-        env:
-          AWS_REGION: ${{ secrets.AWS_REGION }}
+          env:
+            AWS_REGION: ${{ secrets.AWS_REGION }}
